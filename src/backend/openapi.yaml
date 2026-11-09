@@ -1,0 +1,498 @@
+openapi: 3.0.3
+info:
+  title: Acesso a quartos
+  version: 1.0.0
+  description: |-
+    Backend da Atividade 3. Expanda uma operação, clique em **Try it out**, preencha os dados e clique em **Execute**.
+
+    Comece cadastrando um quarto e uma pessoa. Use os IDs retornados para cadastrar uma senha e depois simule uma tentativa em **Acessos**. Consulte o histórico para conferir os resultados. Todas as chamadas passam pelo Gateway.
+servers:
+- url: /
+  description: Gateway atual
+tags:
+- name: Quartos
+  description: Quartos e suas fechaduras.
+- name: Pessoas
+  description: Hóspedes e funcionários.
+- name: Senhas
+  description: Autorizações e períodos de validade.
+- name: Acessos
+  description: Verificação da entrada e histórico.
+paths:
+  /quartos:
+    get:
+      tags: [Quartos]
+      summary: Listar quartos
+      responses:
+        '200':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Quarto'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+      parameters:
+      - name: fechadura_id
+        in: query
+        required: false
+        schema: {type: string, minLength: 1}
+        description: Filtrar pela identificação da fechadura.
+    post:
+      tags: [Quartos]
+      summary: Cadastrar quarto
+      responses:
+        '201':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quarto'
+        '400':
+          $ref: '#/components/responses/DadosInvalidos'
+        '409':
+          $ref: '#/components/responses/ConflitoCadastro'
+        '415':
+          $ref: '#/components/responses/FormatoInvalido'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuartoCadastro'
+  /quartos/{quarto_id}:
+    get:
+      tags: [Quartos]
+      summary: Consultar quarto
+      responses:
+        '200':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quarto'
+        '404':
+          $ref: '#/components/responses/RegistroNaoEncontrado'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+      parameters:
+      - name: quarto_id
+        in: path
+        required: true
+        schema: {type: integer, minimum: 1, example: 1}
+  /pessoas:
+    get:
+      tags: [Pessoas]
+      summary: Listar pessoas
+      responses:
+        '200':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pessoa'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+    post:
+      tags: [Pessoas]
+      summary: Cadastrar hóspede ou funcionário
+      responses:
+        '201':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pessoa'
+        '400':
+          $ref: '#/components/responses/DadosInvalidos'
+        '415':
+          $ref: '#/components/responses/FormatoInvalido'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PessoaCadastro'
+  /pessoas/{pessoa_id}:
+    get:
+      tags: [Pessoas]
+      summary: Consultar pessoa
+      responses:
+        '200':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pessoa'
+        '404':
+          $ref: '#/components/responses/RegistroNaoEncontrado'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+      parameters:
+      - name: pessoa_id
+        in: path
+        required: true
+        schema: {type: integer, minimum: 1, example: 1}
+  /senhas:
+    get:
+      tags: [Senhas]
+      summary: Listar autorizações sem expor códigos
+      responses:
+        '200':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Senha'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+    post:
+      tags: [Senhas]
+      summary: Cadastrar senha e período de validade
+      responses:
+        '201':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Senha'
+        '400':
+          $ref: '#/components/responses/DadosInvalidos'
+        '409':
+          $ref: '#/components/responses/ConflitoCadastro'
+        '415':
+          $ref: '#/components/responses/FormatoInvalido'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SenhaCadastro'
+      description: 'Use os IDs retornados nos cadastros de pessoa e quarto. Os horários do exemplo são
+        calculados ao carregar esta documentação: de uma hora atrás até uma hora à frente. O código não
+        é devolvido.'
+  /senhas/{senha_id}:
+    put:
+      tags: [Senhas]
+      summary: Alterar código, pessoa, quarto e validade
+      responses:
+        '200':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Senha'
+        '400':
+          $ref: '#/components/responses/DadosInvalidos'
+        '404':
+          $ref: '#/components/responses/RegistroNaoEncontrado'
+        '409':
+          $ref: '#/components/responses/ConflitoCadastro'
+        '415':
+          $ref: '#/components/responses/FormatoInvalido'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SenhaCadastro'
+      parameters:
+      - name: senha_id
+        in: path
+        required: true
+        schema: {type: integer, minimum: 1, example: 1}
+      description: Informe todos os cinco campos. Para testar senha futura ou expirada, altere início
+        e fim mantendo o fuso horário.
+  /acessos:
+    get:
+      tags: [Acessos]
+      summary: Consultar histórico de todas as tentativas
+      responses:
+        '200':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AcessoRegistrado'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+    post:
+      tags: [Acessos]
+      summary: Simular uma tentativa na fechadura
+      responses:
+        '200':
+          description: Operação concluída.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoAcesso'
+        '400':
+          $ref: '#/components/responses/DadosInvalidos'
+        '415':
+          $ref: '#/components/responses/FormatoInvalido'
+        '503':
+          description: 'Consulta indisponível: tentativa negada com motivo servico_indisponivel. Falha
+            no banco: erro sem autorização.'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ResultadoAcesso'
+                - $ref: '#/components/schemas/Erro'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TentativaCadastro'
+            examples:
+              valido:
+                summary: Código cadastrado
+                value:
+                  fechadura_id: fechadura-101
+                  codigo: '012345'
+              incorreto:
+                summary: Código não cadastrado
+                value:
+                  fechadura_id: fechadura-101
+                  codigo: '999999'
+              malformado:
+                summary: Código malformado
+                value:
+                  fechadura_id: fechadura-101
+                  codigo: abc
+              desconhecida:
+                summary: Fechadura desconhecida
+                value:
+                  fechadura_id: fechadura-inexistente
+                  codigo: '012345'
+      description: 'O backend determina o horário e registra a tentativa antes de responder. HTTP 200
+        significa que a verificação terminou: consulte autorizado e motivo para saber se a entrada foi
+        permitida.'
+  /senhas/lote:
+    post:
+      tags: [Senhas]
+      summary: Conceder acesso a vários quartos em um único cadastro
+      responses:
+        '201':
+          description: Todas as autorizações foram criadas. Códigos e hashes não são devolvidos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Senha'
+        '400':
+          $ref: '#/components/responses/DadosInvalidos'
+        '409':
+          $ref: '#/components/responses/ConflitoCadastro'
+        '415':
+          $ref: '#/components/responses/FormatoInvalido'
+        '503':
+          $ref: '#/components/responses/ServicoIndisponivel'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SenhasLoteCadastro'
+      description: Informe uma pessoa, os IDs dos quartos, um código e o período. Cria uma autorização
+        por quarto e devolve a lista na ordem informada. Se qualquer quarto não existir ou tiver conflito,
+        nenhuma autorização do lote é salva. Os horários do exemplo são atualizados ao carregar a documentação.
+components:
+  schemas:
+    QuartoCadastro:
+      type: object
+      properties:
+        nome: {type: string, minLength: 1}
+        fechadura_id:
+          type: string
+          minLength: 1
+          description: Identificação única da fechadura.
+      required: [nome, fechadura_id]
+      example:
+        nome: Quarto 101
+        fechadura_id: fechadura-101
+    Quarto:
+      type: object
+      properties:
+        id: {type: integer, minimum: 1, example: 1}
+        nome: {type: string, minLength: 1}
+        fechadura_id: {type: string, minLength: 1}
+      required: [id, nome, fechadura_id]
+    PessoaCadastro:
+      type: object
+      properties:
+        nome: {type: string, minLength: 1}
+        tipo:
+          type: string
+          enum: [hospede, limpeza, manutencao]
+      required: [nome, tipo]
+      example:
+        nome: Ana
+        tipo: hospede
+    Pessoa:
+      type: object
+      properties:
+        id: {type: integer, minimum: 1, example: 1}
+        nome: {type: string, minLength: 1}
+        tipo:
+          type: string
+          enum: [hospede, limpeza, manutencao]
+      required: [id, nome, tipo]
+    SenhaCadastro:
+      type: object
+      properties:
+        pessoa_id: {type: integer, minimum: 1, example: 1}
+        quarto_id: {type: integer, minimum: 1, example: 1}
+        codigo:
+          type: string
+          pattern: ^[0-9]{6}$
+          example: '012345'
+          description: Código de seis dígitos, enviado como texto para preservar zeros à esquerda.
+        inicio:
+          type: string
+          format: date-time
+          description: Data e hora com fuso explícito. Início inclusivo; fim exclusivo.
+        fim:
+          type: string
+          format: date-time
+          description: Data e hora com fuso explícito. Início inclusivo; fim exclusivo.
+      required: [pessoa_id, quarto_id, codigo, inicio, fim]
+      example:
+        pessoa_id: 1
+        quarto_id: 1
+        codigo: '012345'
+        inicio: '2026-01-01T00:00:00+00:00'
+        fim: '2027-01-01T00:00:00+00:00'
+    Senha:
+      type: object
+      properties:
+        id: {type: integer, minimum: 1, example: 1}
+        pessoa_id: {type: integer, minimum: 1, example: 1}
+        quarto_id: {type: integer, minimum: 1, example: 1}
+        inicio:
+          type: string
+          format: date-time
+          description: Data e hora com fuso explícito. Início inclusivo; fim exclusivo.
+        fim:
+          type: string
+          format: date-time
+          description: Data e hora com fuso explícito. Início inclusivo; fim exclusivo.
+      required: [id, pessoa_id, quarto_id, inicio, fim]
+    TentativaCadastro:
+      type: object
+      properties:
+        fechadura_id: {type: string, minLength: 1}
+        codigo:
+          type: string
+          description: Código digitado. Códigos malformados também geram tentativa negada.
+      required: [fechadura_id, codigo]
+      example:
+        fechadura_id: fechadura-101
+        codigo: '012345'
+    ResultadoAcesso:
+      type: object
+      properties:
+        id: {type: integer, minimum: 1, example: 1}
+        quarto_id: {type: integer, minimum: 1, example: 1, nullable: true}
+        pessoa_id: {type: integer, minimum: 1, example: 1, nullable: true}
+        instante:
+          type: string
+          format: date-time
+          description: Data e hora com fuso explícito. Início inclusivo; fim exclusivo.
+        autorizado: {type: boolean}
+        motivo:
+          type: string
+          enum: [senha_valida, codigo_incorreto, codigo_invalido, fora_da_validade, fechadura_desconhecida,
+            servico_indisponivel]
+      required: [id, quarto_id, pessoa_id, instante, autorizado, motivo]
+    AcessoRegistrado:
+      allOf:
+      - $ref: '#/components/schemas/ResultadoAcesso'
+      - type: object
+        properties:
+          fechadura_id: {type: string, minLength: 1}
+        required: [fechadura_id]
+    Erro:
+      type: object
+      properties:
+        erro: {type: string}
+      required: [erro]
+    SenhasLoteCadastro:
+      type: object
+      properties:
+        pessoa_id: {type: integer, minimum: 1, example: 1}
+        codigo:
+          type: string
+          pattern: ^[0-9]{6}$
+          example: '012345'
+          description: Código de seis dígitos, enviado como texto para preservar zeros à esquerda.
+        inicio:
+          type: string
+          format: date-time
+          description: Data e hora com fuso explícito. Início inclusivo; fim exclusivo.
+        fim:
+          type: string
+          format: date-time
+          description: Data e hora com fuso explícito. Início inclusivo; fim exclusivo.
+        quarto_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: {type: integer, minimum: 1}
+          description: IDs dos quartos que receberão a mesma autorização. Sem repetidos.
+      required: [pessoa_id, quarto_ids, codigo, inicio, fim]
+      example:
+        pessoa_id: 1
+        codigo: '012345'
+        inicio: '2026-01-01T00:00:00+00:00'
+        fim: '2027-01-01T00:00:00+00:00'
+        quarto_ids: [1, 2, 3]
+  responses:
+    ServicoIndisponivel:
+      description: Banco de dados ou serviço necessário indisponível.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    DadosInvalidos:
+      description: Campos ausentes, tipos inválidos ou regra de cadastro não atendida.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    ConflitoCadastro:
+      description: Fechadura duplicada ou mesmo código no mesmo quarto em períodos sobrepostos.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    FormatoInvalido:
+      description: 'Envie o corpo com Content-Type: application/json.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    RegistroNaoEncontrado:
+      description: Registro não encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
