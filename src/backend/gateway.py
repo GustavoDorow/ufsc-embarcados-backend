@@ -1,4 +1,3 @@
-"""Entrada REST pública: encaminha requisições sem acessar bancos de dados."""
 
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -25,13 +24,11 @@ SERVICOS = {
 
 @app.get("/")
 def abrir_documentacao():
-    """Abre a interface Swagger UI ao acessar a raiz do Gateway."""
     return redirect("/docs/")
 
 
 @app.get("/openapi.json")
 def consultar_documentacao():
-    """Documenta as rotas públicas e fornece exemplos de validade próximos de agora."""
     especificacao = yaml.safe_load(Path(__file__).with_name("openapi.yaml").read_text(encoding="utf-8"))
     agora = datetime.now(timezone.utc)
     for esquema in ("SenhaCadastro", "SenhasLoteCadastro"):
@@ -43,7 +40,6 @@ def consultar_documentacao():
 
 @app.route("/<path:caminho>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 def encaminhar_requisicao(caminho):
-    """Preserva corpo, consulta e status; validação de senha é uma rota interna."""
     servico = caminho.split("/")[0]
     if servico not in SERVICOS or caminho.rstrip("/") == "senhas/validar":
         abort(404, description="Rota não encontrada no Gateway.")

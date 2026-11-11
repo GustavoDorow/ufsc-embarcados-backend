@@ -1,4 +1,3 @@
-"""Cadastro das pessoas que podem receber senhas para os quartos."""
 
 from flask import abort, jsonify
 
@@ -17,7 +16,6 @@ with abrir_banco("pessoas") as banco:
 
 @app.get("/pessoas")
 def listar_pessoas():
-    """Lista hóspedes e funcionários cadastrados."""
     with abrir_banco("pessoas") as banco:
         pessoas = banco.execute("SELECT * FROM pessoas ORDER BY id").fetchall()
     return jsonify([dict(pessoa) for pessoa in pessoas])
@@ -25,7 +23,6 @@ def listar_pessoas():
 
 @app.get("/pessoas/<int:pessoa_id>")
 def consultar_pessoa(pessoa_id):
-    """Permite ao serviço de senhas confirmar a existência da pessoa."""
     with abrir_banco("pessoas") as banco:
         pessoa = banco.execute("SELECT * FROM pessoas WHERE id = ?", (pessoa_id,)).fetchone()
     if pessoa is None:
@@ -35,7 +32,6 @@ def consultar_pessoa(pessoa_id):
 
 @app.post("/pessoas")
 def cadastrar_pessoa():
-    """Registra uma pessoa como hospede, limpeza ou manutencao."""
     dados = ler_campos_json("nome", "tipo")
     nome = validar_texto(dados["nome"], "nome")
     if dados["tipo"] not in ("hospede", "limpeza", "manutencao"):

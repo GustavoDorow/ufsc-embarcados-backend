@@ -1,4 +1,3 @@
-"""Verifica a entrada por HTTP e registra todas as tentativas recebidas."""
 
 from datetime import datetime, timezone
 
@@ -26,7 +25,6 @@ with abrir_banco("acessos") as banco:
 
 @app.post("/acessos")
 def verificar_acesso():
-    """Não autoriza sem consultar os serviços e confirmar a gravação do histórico."""
     dados = ler_campos_json("fechadura_id", "codigo")
     fechadura_id = validar_texto(dados["fechadura_id"], "fechadura_id")
     codigo = dados["codigo"]
@@ -77,7 +75,6 @@ def verificar_acesso():
 
 @app.get("/acessos")
 def listar_acessos():
-    """Lista o histórico de tentativas sem armazenar o código digitado."""
     with abrir_banco("acessos") as banco:
         registros = banco.execute("SELECT * FROM acessos ORDER BY id").fetchall()
     acessos = []

@@ -1,4 +1,3 @@
-"""Cadastro de quartos e identificação única de suas fechaduras."""
 
 from flask import abort, jsonify, request
 
@@ -17,7 +16,6 @@ with abrir_banco("quartos") as banco:
 
 @app.get("/quartos")
 def listar_quartos():
-    """Lista quartos; o filtro de fechadura é usado pelo controle de acessos."""
     with abrir_banco("quartos") as banco:
         if "fechadura_id" in request.args:
             registros = banco.execute(
@@ -31,7 +29,6 @@ def listar_quartos():
 
 @app.get("/quartos/<int:quarto_id>")
 def consultar_quarto(quarto_id):
-    """Confirma a existência de um quarto sem expor seu banco a outros serviços."""
     with abrir_banco("quartos") as banco:
         quarto = banco.execute("SELECT * FROM quartos WHERE id = ?", (quarto_id,)).fetchone()
     if quarto is None:
@@ -41,7 +38,6 @@ def consultar_quarto(quarto_id):
 
 @app.post("/quartos")
 def cadastrar_quarto():
-    """Cadastra um quarto com uma fechadura que não pertence a outro quarto."""
     dados = ler_campos_json("nome", "fechadura_id")
     nome = validar_texto(dados["nome"], "nome")
     fechadura_id = validar_texto(dados["fechadura_id"], "fechadura_id")

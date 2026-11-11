@@ -1,4 +1,3 @@
-"""Autorizações de uma pessoa para um quarto durante um intervalo de tempo."""
 
 import requests
 from flask import abort, jsonify
@@ -26,14 +25,12 @@ with abrir_banco("senhas") as banco:
 
 
 def validar_codigo(codigo):
-    """O código da fechadura é texto com exatamente seis dígitos ASCII."""
     if not isinstance(codigo, str) or len(codigo) != 6 or not codigo.isascii() or not codigo.isdigit():
         raise ValueError("O código deve ser um texto com seis dígitos, como 012345.")
     return codigo
 
 
 def preparar_senha(dados, quarto_ids):
-    """Valida os dados comuns e confirma pessoa e quartos por HTTP."""
     pessoa_id = validar_identificador(dados["pessoa_id"], "pessoa_id")
     codigo = validar_codigo(dados["codigo"])
     inicio = interpretar_data(dados["inicio"])
@@ -52,7 +49,6 @@ def preparar_senha(dados, quarto_ids):
 
 
 def verificar_conflito_senha(banco, quarto_id, codigo, inicio, fim, senha_id=None):
-    """Confere sobreposição dentro da transação, ignorando a senha em atualização."""
     sobrepostas = banco.execute(
         "SELECT id, codigo_hash FROM senhas WHERE quarto_id = ? AND inicio < ? AND fim > ?",
         (quarto_id, fim, inicio),
@@ -63,7 +59,6 @@ def verificar_conflito_senha(banco, quarto_id, codigo, inicio, fim, senha_id=Non
 
 
 def inserir_senha(banco, pessoa_id, quarto_id, codigo_hash, inicio, fim):
-    """Insere uma autorização sem confirmar a transação nem expor o hash."""
     cursor = banco.execute(
         "INSERT INTO senhas (pessoa_id, quarto_id, codigo_hash, inicio, fim) VALUES (?, ?, ?, ?, ?)",
         (pessoa_id, quarto_id, codigo_hash, inicio, fim),
@@ -73,7 +68,6 @@ def inserir_senha(banco, pessoa_id, quarto_id, codigo_hash, inicio, fim):
 
 
 def salvar_senha(senha_id=None):
-    """Cria ou substitui uma autorização, impedindo códigos ambíguos no mesmo quarto."""
     dados = ler_campos_json("pessoa_id", "quarto_id", "codigo", "inicio", "fim")
     quarto_id = validar_identificador(dados["quarto_id"], "quarto_id")
     pessoa_id, codigo, inicio, fim = preparar_senha(dados, [quarto_id])
@@ -101,13 +95,11 @@ def salvar_senha(senha_id=None):
 
 @app.post("/senhas")
 def cadastrar_senha():
-    """Cadastra uma senha sem devolver ou armazenar o código em texto puro."""
     return salvar_senha()
 
 
 @app.post("/senhas/lote")
 def cadastrar_senhas_lote():
-    """Concede acesso a vários quartos; qualquer falha desfaz o lote inteiro."""
     dados = ler_campos_json("pessoa_id", "quarto_ids", "codigo", "inicio", "fim")
     quarto_ids = dados["quarto_ids"]
     if not isinstance(quarto_ids, list) or not quarto_ids:
@@ -129,13 +121,11 @@ def cadastrar_senhas_lote():
 
 @app.put("/senhas/<int:senha_id>")
 def atualizar_senha(senha_id):
-    """Substitui todos os campos da senha, inclusive código e validade."""
     return salvar_senha(senha_id)
 
 
 @app.get("/senhas")
 def listar_senhas():
-    """Lista autorizações sem expor códigos ou hashes."""
     with abrir_banco("senhas") as banco:
         senhas = banco.execute(
             "SELECT id, pessoa_id, quarto_id, inicio, fim FROM senhas ORDER BY id"
@@ -145,7 +135,6 @@ def listar_senhas():
 
 @app.post("/senhas/validar")
 def verificar_senha():
-    """Consulta interna: início inclusivo e fim exclusivo; horário vem de acessos."""
     dados = ler_campos_json("quarto_id", "codigo", "instante")
     quarto_id = validar_identificador(dados["quarto_id"], "quarto_id")
     codigo = validar_codigo(dados["codigo"])

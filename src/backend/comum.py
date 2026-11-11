@@ -1,4 +1,3 @@
-"""Funções pequenas compartilhadas; cada serviço abre somente seu próprio banco."""
 
 import os
 import sqlite3
@@ -12,7 +11,6 @@ from werkzeug.exceptions import HTTPException
 
 
 def criar_aplicacao(nome):
-    """Padroniza erros JSON sem esconder falhas como respostas de sucesso."""
     app = Flask(nome)
     app.json.ensure_ascii = False
 
@@ -43,7 +41,6 @@ def criar_aplicacao(nome):
 
 @contextmanager
 def abrir_banco(nome):
-    """Abre um SQLite por serviço e confirma ou desfaz a operação ao terminar."""
     pasta = Path(os.environ.get("DADOS_DIR", "dados"))
     pasta.mkdir(parents=True, exist_ok=True)
     banco = sqlite3.connect(pasta / f"{nome}.sqlite3", timeout=5)
@@ -56,7 +53,6 @@ def abrir_banco(nome):
 
 
 def ler_campos_json(*campos):
-    """Exige um objeto JSON com os campos necessários para a operação."""
     dados = request.get_json()
     if not isinstance(dados, dict):
         raise ValueError("Envie um objeto JSON.")
@@ -67,21 +63,18 @@ def ler_campos_json(*campos):
 
 
 def validar_texto(valor, campo):
-    """Remove espaços externos e rejeita texto vazio."""
     if not isinstance(valor, str) or not valor.strip():
         raise ValueError(f"O campo {campo} deve ser um texto não vazio.")
     return valor.strip()
 
 
 def validar_identificador(valor, campo):
-    """Identificadores de pessoas e quartos são inteiros positivos."""
     if type(valor) is not int or valor < 1:
         raise ValueError(f"O campo {campo} deve ser um inteiro positivo.")
     return valor
 
 
 def interpretar_data(valor):
-    """Converte uma data ISO 8601 com fuso para UTC."""
     if not isinstance(valor, str):
         raise ValueError("A data deve ser um texto ISO 8601 com fuso horário.")
     try:
@@ -94,5 +87,4 @@ def interpretar_data(valor):
 
 
 def endereco_servico(nome, porta):
-    """Permite configurar URLs internas sem alterar o código dos serviços."""
     return os.environ.get(f"{nome.upper()}_URL", f"http://127.0.0.1:{porta}")
