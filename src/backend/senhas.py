@@ -79,7 +79,6 @@ def salvar_senha(senha_id=None):
     pessoa_id, codigo, inicio, fim = preparar_senha(dados, [quarto_id])
     codigo_hash = generate_password_hash(codigo)
     with abrir_banco("senhas") as banco:
-        # A transação impede que dois cadastros simultâneos passem pela mesma validação.
         banco.execute("BEGIN IMMEDIATE")
         if senha_id is not None:
             existente = banco.execute("SELECT id FROM senhas WHERE id = ?", (senha_id,)).fetchone()
